@@ -1,0 +1,106 @@
+{
+  "$schema": "https://api.northflank.com/v1/schemas/template",
+  "apiVersion": "v1",
+  "spec": {
+    "kind": "Workflow",
+    "spec": {
+      "type": "sequential",
+      "steps": [
+        {
+          "kind": "Project",
+          "spec": {
+            "name": "stirling-pdf",
+            "region": "europe-west",
+            "color": "#0099cc"
+          }
+        },
+        {
+          "kind": "BuildService",
+          "spec": {
+            "name": "stirling-pdf-build",
+            "billing": {
+              "deploymentPlan": "nf-compute-200-4"
+            },
+            "vcsData": {
+              "projectUrl": "https://github.com/YOUR_USERNAME/YOUR_REPO",
+              "projectType": "github",
+              "accountLogin": "YOUR_GITHUB_USERNAME",
+              "selfHostedVcsId": ""
+            },
+            "buildSettings": {
+              "dockerfile": {
+                "buildEngine": "kaniko",
+                "dockerfilePath": "/Dockerfile",
+                "dockerWorkDir": "/",
+                "useCache": true
+              }
+            },
+            "buildArguments": {},
+            "isPublic": false,
+            "disabledCI": false
+          }
+        },
+        {
+          "kind": "DeploymentService",
+          "spec": {
+            "name": "stirling-pdf",
+            "billing": {
+              "deploymentPlan": "nf-compute-200-4"
+            },
+            "deployment": {
+              "instances": 1,
+              "docker": {
+                "configType": "customDockerfile"
+              },
+              "internal": {
+                "id": "stirling-pdf-build",
+                "branch": "main",
+                "buildSHA": "latest"
+              }
+            },
+            "ports": [
+              {
+                "name": "http",
+                "internalPort": 8080,
+                "public": true,
+                "protocol": "HTTP",
+                "security": {
+                  "credentials": [],
+                  "policies": []
+                },
+                "domains": []
+              }
+            ],
+            "runtimeEnvironment": {
+              "SECURITY_ENABLELOGIN": "false",
+              "DISABLE_ADDITIONAL_FEATURES": "false",
+              "FAT_DOCKER": "true",
+              "SYSTEM_DEFAULTLOCALE": "en-US",
+              "SYSTEM_MAXFILESIZE": "200",
+              "METRICS_ENABLED": "true",
+              "STIRLING_JVM_PROFILE": "balanced",
+              "UI_APPNAME": "Stirling-PDF",
+              "UI_APPNAMENAVBAR": "Stirling-PDF"
+            },
+            "healthChecks": [
+              {
+                "protocol": "HTTP",
+                "path": "/api/v1/info/status",
+                "port": 8080,
+                "initialDelaySeconds": 120,
+                "periodSeconds": 30,
+                "timeoutSeconds": 15,
+                "failureThreshold": 5
+              }
+            ],
+            "storage": {
+              "ephemeralStorage": {
+                "storageSize": 8192
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
