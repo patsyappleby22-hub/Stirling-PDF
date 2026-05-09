@@ -97,11 +97,12 @@ export default defineConfig(async ({ mode }) => {
       }),
     ],
     server: {
-      host: true,
+      host: "0.0.0.0",
       // make sure this port matches the devUrl port in tauri.conf.json file
-      port: 5173,
+      port: parseInt(process.env.PORT || "5000"),
       // Tauri expects a fixed port, fail if that port is not available
-      strictPort: true,
+      strictPort: false,
+      allowedHosts: true,
       watch: {
         // tell vite to ignore watching `src-tauri`
         ignored: ["**/src-tauri/**"],
